@@ -11,10 +11,10 @@ num = 7000
 # input image dimensions
 img_rows, img_cols = 64, 64
 
-source_x = np.load('./data/source_x_paper.npy')
-target_x = np.load('./data/target_x_paper.npy')
-source_y = np.load('./data/source_y_paper.npy')
-target_y = np.load('./data/target_y_paper.npy')
+source_x = np.load('/home/zzc/danncode/ts-dann/data/source_x_paper.npy')
+target_x = np.load('/home/zzc/danncode/ts-dann/data/target_x_paper.npy')
+source_y = np.load('/home/zzc/danncode/ts-dann/data/source_y_paper.npy')
+target_y = np.load('/home/zzc/danncode/ts-dann/data/target_y_paper.npy')
 
 indices = list(range(num))
 np.random.seed(1)
@@ -22,6 +22,7 @@ np.random.shuffle(indices)
 split1 = int(num * 0.8)
 split2 = int(num * 0.9)
 train_idx, valid_idx, test_idx = indices[:split1], indices[split1:split2], indices[split2:]
+
 
 source_train_data = source_x[train_idx]
 source_train_labels = source_y[train_idx]
@@ -36,11 +37,11 @@ target_eval_data = target_x[valid_idx]
 target_eval_labels = target_y[valid_idx]
 target_test_data = target_x[test_idx]
 target_test_labels = target_y[test_idx]
+print(target_test_labels)
 
 graph = tf.get_default_graph()
 with graph.as_default():
     model = DANN(batch_size=batch_size, num_class=num_classes, img_cols=img_cols, img_rows=img_rows)
-
     learning_rate = tf.placeholder(tf.float32, [])
 
     pred = model.pred
@@ -60,7 +61,6 @@ with graph.as_default():
 
 def train_and_evaluate(training_mode, graph, model, num_steps=5000, verbose=True, channel_begin=0, channel_end=3):
     """Helper to run the model with different training modes."""
-
     with tf.Session(graph=graph) as sess:
         tf.global_variables_initializer().run()
 
@@ -91,7 +91,10 @@ def train_and_evaluate(training_mode, graph, model, num_steps=5000, verbose=True
             if training_mode == 'dann':
 
                 X0, y0 = next(gen_source_batch)
+                # print(X0,y0)
+                # print(np.hstack([X0,y0]))
                 X1, y1 = next(gen_target_batch)
+                # print(X1,y1)
                 X = np.vstack([X0[:, :, :, idx1:idx2], X1[:, :, :, idx1:idx2]])
                 y = np.vstack([y0, y1])
 
@@ -115,8 +118,10 @@ def train_and_evaluate(training_mode, graph, model, num_steps=5000, verbose=True
 
             elif training_mode == 'target':
                 X, y = next(gen_target_only_batch)
+                print(X,y)
                 X = X[:, :, :, idx1:idx2]
-                _, batch_loss = sess.run([regular_train_op, pred_loss],
+                print(X)
+                pred, _, batch_loss = sess.run([pred, regular_train_op, pred_loss],
                                          feed_dict={model.X: X, model.y: y, model.train: False,
                                                     model.l: l, learning_rate: lr})
 
@@ -139,7 +144,8 @@ def train_and_evaluate(training_mode, graph, model, num_steps=5000, verbose=True
         res_t = []
         for i in range(5):
             idx = source_test_labels[:, i] == 1
-
+            print(idx)
+            print(source_test_data[idx][:, :, :, idx1:idx2])
             pred_s = sess.run(pred, feed_dict={model.X: source_test_data[idx][:, :, :, idx1:idx2], model.train: False})
             res_s.append(pred_s)
 
@@ -154,13 +160,13 @@ def train_and_evaluate(training_mode, graph, model, num_steps=5000, verbose=True
 # RGB channels
 print('\nSource only training')
 source_acc, target_acc, source_res_s, source_res_t = train_and_evaluate(
-    'source', graph, model, channel_begin=0, channel_end=3)
+    'source', graph, model, channel_begin=0, channel_end=6)
 print('Source accuracy:', source_acc)
 print('Target  accuracy:', target_acc)
 
 print('\nDomain adaptation training')
 source_acc, target_acc, dann_res_s, dann_res_t = train_and_evaluate(
-    'dann', graph, model, channel_begin=0, channel_end=3)
+    'dann', graph, model, channel_begin=0, channel_end=6)
 print('Source  accuracy:', source_acc)
 print('Target  accuracy:', target_acc)
 
@@ -201,6 +207,7 @@ print('Target  accuracy:', target_acc)
 l1 = 0
 l2 = 0
 fusion = []
+# alpha when dann is 0.4733,when only cnn is 0.6
 alpha = 0.4733
 for i in range(5):
     pred_fusion = alpha * np.array(dann_res_t[i]) + (1 - alpha) * np.array(dann_res_t_text[i])
@@ -210,7 +217,29 @@ for i in range(5):
     pred_vector = np.zeros((pred_fusion.shape[0], num_classes))
     pred_vector[np.arange(pred_fusion.shape[0]), pred_fusion] = 1
     fusion.append(np.sum(pred_vector, axis=0))
-
 confusion_matrix = fusion / np.sum(fusion, axis=1)
 print("acc: ", l1/l2)
 print(confusion_matrix)
+
+# when we use only rgb or only texture Take this way to compute fusion
+# l1=0
+# l2=0
+# rgb =[]
+# for i in range(5):
+#     pred_rgb = np.array(dann_res_t[i])
+#     pred_rgb = np.argmax(pred_rgb,axis=1)
+#     l1 = l1 + np.sum(pred_rgb == i)
+#     l2 = l2+len(pred_rgb)
+#     pred_vector = np.zeros((pred_rgb.shape[0],num_classes))
+#     pred_vector[np.arange(pred_rgb.shape[0]),pred_rgb] =1
+#     rgb.append(np.sum(pred_vector,axis=0))
+#
+# confusion_matrix = rgb / np.sum(rgb,axis=1)
+# print(confusion_matrix)
+# confusion_new = []
+# for i in [0,4,3,1,2]:
+#     for j in [0,4,3,1,2]:
+#         confusion_new.append(confusion_matrix[i][j])
+# a = np.array(confusion_new).reshape((5,5))
+# print("acc:",l1/l2)
+# print(a)

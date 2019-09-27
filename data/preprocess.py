@@ -2,8 +2,11 @@ import tensorflow as tf
 import numpy as np
 import pickle as pkl
 from sklearn.manifold import TSNE
-import keras
+
 import os
+# os.environ['KERAS_BACKEND']='TensorFlow'
+import keras
+# from keras import backend
 import tifffile as tiff
 from utils.utils import *
 
@@ -13,14 +16,13 @@ epochs = 10
 num = 7000
 # input image dimensions
 img_rows, img_cols = 64, 64
-
 source_x = np.zeros([num, img_rows, img_cols, 6])
 source_y = []
 target_x = np.zeros([num, img_rows, img_cols, 6])
 target_y = []
 
-source_dir = '../../dataset/paper_datasets_1/haihe_64'
-target_dir = '../../dataset/paper_datasets_1/yellow_64'
+source_dir = 'E:/PycharmProjects/ts-dann/dataset/amzon/images'
+target_dir = 'E:/PycharmProjects/ts-dann/dataset/webcam/images'
 i = 0
 j = 0
 for class_dir in os.listdir(source_dir):
@@ -65,7 +67,7 @@ print(target_x.shape, 'test samples')
 print(source_y.shape)
 print(target_x.shape)
 
-np.save('source_x_paper.npy',source_x)
-np.save('target_x_paper.npy',target_x)
-np.save('source_y_paper.npy',source_y)
-np.save('target_y_paper.npy',target_y)
+np.save('amzon_source_x_paper.npy',source_x)
+np.save('webcam_target_x_paper.npy',target_x)
+np.save('amzon_source_y_paper.npy',source_y)
+np.save('webcam_target_y_paper.npy',target_y)

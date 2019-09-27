@@ -3,6 +3,7 @@ from utils.utils import *
 
 
 @tf.custom_gradient
+# tensorflow dann
 def flip_grad_layer(x, l):
     def grad(dy):
         return tf.negative(dy) * l, None
@@ -17,6 +18,7 @@ class DANN(object):
         self._build_model(batch_size, num_class, img_rows,img_cols)
 
     def _build_model(self, batch_size, num_class, img_rows,img_cols):
+        # when we use only rgb or texture,change it to 6
         self.X = tf.placeholder(tf.float32, [None, img_rows, img_cols, 3])
         self.y = tf.placeholder(tf.float32, [None, num_class])
         self.domain = tf.placeholder(tf.float32, [None, 2])
@@ -25,6 +27,7 @@ class DANN(object):
 
         # CNN model for feature extraction
         with tf.variable_scope('feature_extractor'):
+            # when we use only rgb or texture,change it to 6
             W_conv0 = weight_variable([5, 5, 3, 32])
             b_conv0 = bias_variable([32])
             h_conv0 = tf.nn.relu(conv2d(self.X, W_conv0) + b_conv0)
@@ -34,7 +37,6 @@ class DANN(object):
             b_conv1 = bias_variable([64])
             h_conv1 = tf.nn.relu(conv2d(h_pool0, W_conv1) + b_conv1)
             h_pool1 = max_pool_2x2(h_conv1)
-
             # The domain-invariant feature
             self.feature = tf.reshape(h_pool1, [-1, img_rows * img_cols * 4])
 
@@ -62,6 +64,7 @@ class DANN(object):
             self.pred_loss = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=self.classify_labels)
 
         # Small MLP for domain prediction with adversarial loss
+        # when we only use cnn,remove this
         with tf.variable_scope('domain_predictor'):
             # Flip the gradient when backpropagating through this operation
             feat = flip_grad_layer(self.feature, self.l)

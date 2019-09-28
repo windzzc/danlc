@@ -160,13 +160,13 @@ def train_and_evaluate(training_mode, graph, model, num_steps=5000, verbose=True
 # RGB channels
 print('\nSource only training')
 source_acc, target_acc, source_res_s, source_res_t = train_and_evaluate(
-    'source', graph, model, channel_begin=0, channel_end=6)
+    'source', graph, model, channel_begin=0, channel_end=3)
 print('Source accuracy:', source_acc)
 print('Target  accuracy:', target_acc)
 
 print('\nDomain adaptation training')
 source_acc, target_acc, dann_res_s, dann_res_t = train_and_evaluate(
-    'dann', graph, model, channel_begin=0, channel_end=6)
+    'dann', graph, model, channel_begin=0, channel_end=3)
 print('Source  accuracy:', source_acc)
 print('Target  accuracy:', target_acc)
 

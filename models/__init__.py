@@ -1,1 +1,1 @@
-from .dann import DANN
+from .dnlc import DNLC

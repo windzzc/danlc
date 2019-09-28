@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-from models import DNLC
+from models import DANLC
 from utils.utils import *
 
 batch_size = 64
@@ -41,7 +41,7 @@ print(target_test_labels)
 
 graph = tf.get_default_graph()
 with graph.as_default():
-    model = DNLC(batch_size=batch_size, num_class=num_classes, img_cols=img_cols, img_rows=img_rows)
+    model = DANLC(batch_size=batch_size, num_class=num_classes, img_cols=img_cols, img_rows=img_rows)
     learning_rate = tf.placeholder(tf.float32, [])
 
     pred = model.pred
@@ -173,7 +173,7 @@ print('Target  accuracy:', target_acc)
 # Texture channels
 graph = tf.get_default_graph()
 with graph.as_default():
-    model = DNLC(batch_size=batch_size, num_class=num_classes, img_cols=img_cols, img_rows=img_rows)
+    model = DANLC(batch_size=batch_size, num_class=num_classes, img_cols=img_cols, img_rows=img_rows)
 
     learning_rate = tf.placeholder(tf.float32, [])
 

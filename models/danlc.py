@@ -11,7 +11,7 @@ def flip_grad_layer(x, l):
     return tf.identity(x), grad
 
 
-class DNLC(object):
+class DANLC(object):
     """Simple MNIST domain adaptation model."""
 
     def __init__(self, batch_size=64, num_class=5, img_rows=64,img_cols=64):
